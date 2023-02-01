@@ -142,17 +142,21 @@ var n = [
 // create a variable to store the selected piece
 var selectedPiece = null;
 
-
-
+// define cellsize
+var cellSize = 64;
 
 function setup() {
-    createCanvas(640, 640);
+    createCanvas(512, 512);
 }
 
 function draw() {
+    frameRate(10);
     drawBoard();
+    noStroke();
+    smooth();
     drawPieces();
-    movePieces();
+    moveSelected();
+    highlight();
 }
 
 function drawBoard() {
@@ -247,14 +251,18 @@ function drawPieces() {
     }
 }
 
-function movePieces() {
+function highlight() {
     // set selected piece if mouse presses it
     if (mouseIsPressed) {
-        var cellSize = width / 8;
-        var x = floor(mouseX / cellSize);
-        var y = floor(mouseY / cellSize);
-        if (pieces[y][x] != ' ') {
-            selectedPiece = [x, y];
+        if (mouseButton === LEFT && (mouseX <= width && mouseX >= 0) && (mouseY <= height && mouseY >= 0)) {
+            var cellSize = width / 8;
+            var x = floor(mouseX / cellSize);
+            var y = floor(mouseY / cellSize);
+            if (pieces[y][x] != ' ') {
+                selectedPiece = [x, y];
+            }
+        } else if (mouseButton === RIGHT) {
+            selectedPiece = null;
         }
     }
     // highlight selected piece
@@ -262,42 +270,19 @@ function movePieces() {
         fill(255, 255, 0, 100);
         rect(selectedPiece[0] * width / 8, selectedPiece[1] * width / 8, width / 8, width / 8);
     }
-    // show possible moves of selected piece based on movement arrays
-    if (selectedPiece != null) {
-        if (selectedPiece == ("p" || "P")) {
-            for (var i = 0; i < p.lenght; i++) {
-                fill(255, 0, 0, 100);
-                rect(p[i][0] * width / 8, p[i][1] * width / 8, width / 8, width / 8);
-            }
-        }
-        if (selectedPiece == ("r" || "R")) {
-            for (var i = 0; i < r.lenght; i++) {
-                fill(255, 0, 0, 100);
-                rect(r[i][0] * width / 8, r[i][1] * width / 8, width / 8, width / 8);
-            }
-        }
-        if (selectedPiece == ("n" || "N")) {
-            for (var i = 0; i < n.lenght; i++) {
-                fill(255, 0, 0, 100);
-                rect(n[i][0] * width / 8, n[i][1] * width / 8, width / 8, width / 8);
-            }
-        }
-        if (selectedPiece == ("b" || "B")) {
-            for (var i = 0; i < b.lenght; i++) {
-                fill(255, 0, 0, 100);
-                rect(b[i][0] * width / 8, b[i][1] * width / 8, width / 8, width / 8);
-            }
-        }
-        if (selectedPiece == ("q" || "Q")) {
-            for (var i = 0; i < q.lenght; i++) {
-                fill(255, 0, 0, 100);
-                rect(q[i][0] * width / 8, q[i][1] * width / 8, width / 8, width / 8);
-            }
-        }
-        if (selectedPiece == ("k" || "K")) {
-            for (var i = 0; i < k.lenght; i++) {
-                fill(255, 0, 0, 100);
-                rect(k[i][0] * width / 8, k[i][1] * width / 8, width / 8, width / 8);
+}
+
+function moveSelected() {
+    // move selected piece to mouse location
+    if (mouseIsPressed) {
+        if (mouseButton === LEFT) {
+            var cellSize = width / 8;
+            var x = floor(mouseX / cellSize);
+            var y = floor(mouseY / cellSize);
+            if (selectedPiece != null) {
+                piece = pieces[selectedPiece[1]][selectedPiece[0]];
+                pieces[selectedPiece[1]][selectedPiece[0]] = ' ';
+                pieces[y][x] = piece
             }
         }
     }
