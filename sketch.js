@@ -22,17 +22,22 @@ var pieces = [
     ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
 ];
 
+var whitePieces = ['P', 'R', 'N', 'B', 'Q', 'K']
+var blackPieces = ['p', 'r', 'n', 'b', 'q', 'k']
+
+var allowedMoves = null;
+
 // store the movement directions possible
 // value 1 of move is x, value 2 of move is y, value 3 is when the move is possible so a value of 0 is whenever, a value of 1 is when a piece has to be in the target spot and a value of 2 is when it is the pieces first move
 // p/P is pawn, r/R is rook, b/B is Bishop,  n/N is knight, q/Q is queen, k/K is king
-p = [
+var p = [
     [0, 1, 0],
     [0, 2, 2],
     [1, 1, 1],
     [-1, 1, 1]
 ];
 
-r = [
+var r = [
     [0, 1, 0],
     [0, 2, 0],
     [0, 3, 0],
@@ -56,7 +61,7 @@ r = [
     [-7, 0, 0]
 ];
 
-b = [
+var b = [
     [1, 1, 0],
     [2, 2, 0],
     [3, 3, 0],
@@ -87,7 +92,7 @@ b = [
     [-7, -7, 0]
 ];
 
-n = [
+var n = [
     [1, 2, 0],
     [2, 1, 0],
     [-1, 2, 0],
@@ -98,7 +103,7 @@ n = [
     [-2, -1, 0]
 ];
 
-q = [
+var q = [
     [0, 1, 0],
     [0, 2, 0],
     [0, 3, 0],
@@ -150,14 +155,14 @@ q = [
     [-7, -7, 0]
 ];
 
-P = [
+var P = [
     [0, -1, 0],
     [0, -2, 2],
     [1, -1, 1],
     [-1,-1, 1]
 ];
 
-R = [
+var R = [
     [0, 1, 0],
     [0, 2, 0],
     [0, 3, 0],
@@ -188,7 +193,7 @@ R = [
     [0, -7, 0],
 ];
 
-B = [
+var B = [
     [1, 1, 0],
     [2, 2, 0],
     [3, 3, 0],
@@ -219,7 +224,7 @@ B = [
     [-7, -7, 0]
 ];
 
-N = [
+var N = [
     [1, 2, 0],
     [2, 1, 0],
     [-1, 2, 0],
@@ -230,7 +235,7 @@ N = [
     [-2, -1, 0]
 ];
 
-Q = [
+var Q = [
     [0, 1, 0],
     [0, 2, 0],
     [0, 3, 0],
@@ -435,79 +440,228 @@ function moveSelected() {
 function previewMoves() {
     // use the p/P, r/R, b/B,  n/N, q/Q, k/K to show a preview of where the piece is allowed to move
     if (selectedPiece != null) {
-        if (selectType(selectedPiece) === "p") {
-            // show preview of p
-            var moves = p
-            console.log(moves)
-            // loop through all possible moves
-            for (var i = 0; i < moves.length; i++) {
-                // check if the move is valid
-                coords = [moves[i][0], moves[i][1]]
-                console.log(coords)
-                if (moves[i][2] == 1) {
-                    console.log("Normal move")
-                    // check if the move is blocked
-                    if (pieces[moves[i][1]][moves[i][0]] === ' ') {
-                        fill(0, 255, 0, 100);
-                        rect(moves[i][0] * width / 8, moves[i][1] * width / 8, width / 8, width / 8);
-                    }
-                } else if (moves[i][2] == 2 && BlackFirstMove(coords)) {
-                    console.log("First move")
-                    // check if the move is blocked
-                    if (pieces[moves[i][1]][moves[i][0]] === ' ') {
-                        fill(0, 255, 0, 100);
-                        rect(moves[i][0] * width / 8, moves[i][1] * width / 8, width / 8, width / 8);
-                    }
-                } else if (moves[i][2] == 3) {
-                    console.log("Capture")
-                    // check if there is an enemy in the square
-                    if (isBlack(coords)) {
-                        fill(255, 0, 0, 100);
-                        rect(moves[i][0] * width / 8, moves[i][1] * width / 8, width / 8, width / 8);
-                    }
-                }
-            }
+        var moves = getPossibleMoves(selectedPiece, selectedPiece[0], selectedPiece[1], getPieceColour(selectedPiece));
+        for (var i = 0; i < moves.length; i++) {
+            fill(255, 0, 0, 100);
+            rect(moves[i][0] * width / 8, moves[i][1] * width / 8, width / 8, width / 8);
         }
     }
 }
 
-function selectType(selectedPiece) {
-    // get the piece type at selectedPiece
-    return pieces[selectedPiece[1]][selectedPiece[0]];
+// Function to calculate all possible moves
+function getPossibleMoves(piece, x, y, color) {
+    let moves = [];
+    var pieceType = piece  + ''
+    switch (pieceType.toLowerCase()) {
+        case 'p':
+            moves = getPawnMoves(pieces, x, y, color);
+            break;
+        case 'r':
+            moves = getRookMoves(pieces, x, y, color);
+            break;
+        case 'n':
+            moves = getKnightMoves(pieces, x, y, color);
+            break;
+        case 'b':
+            moves = getBishopMoves(pieces, x, y, color);
+            break;
+        case 'q':
+            moves = getQueenMoves(pieces, x, y, color);
+            break;
+        case 'k':
+            moves = getKingMoves(pieces, x, y, color);
+            break;
+        default:
+            break;
+    }
+
+    return moves;
 }
 
-function isBlack(coords) {
-    // check if the piece at coords is white
-    if (pieces[coords[1]][coords[0]] === pieces[coords[1]][coords[0]].toUpperCase()) {
-        return true;
-    } else {
-        return false;
+// Function to calculate pawn moves
+function getPawnMoves(pieces, x, y, color) {
+    let moves = [];
+    let direction = color === 'white' ? -1 : 1;
+    let forwardMove = pieces[x + direction][y];
+    if (!forwardMove) {
+        moves.push([x + direction, y]);
+        let doubleMove = pieces[x + direction * 2][y];
+        if (x === (color === 'white' ? 6 : 1) && !doubleMove) {
+            moves.push([x + direction * 2, y]);
+        }
     }
+
+    let captureMoves = [[x + direction, y + 1], [x + direction, y - 1]];
+    for (let move of captureMoves) {
+        if (isEnemyPiece(pieces, move[0], move[1], color)) {
+            moves.push(move);
+        }
+    }
+
+    return moves;
 }
 
-function isWhite(coords) {
-    // check if the piece at coords is black
-    if (pieces[coords[1]][coords[0]] === pieces[coords[1]][coords[0]].toLowerCase()) {
-        return true;
-    } else {
-        return false;
-    }
+// Function to calculate rook moves
+function getRookMoves(pieces, x, y, color) {
+    let moves = [];
+    moves = moves.concat(getHorizontalMoves(pieces, x, y, color));
+    moves = moves.concat(getVerticalMoves(pieces, x, y, color));
+    return moves;
 }
 
-function BlackFirstMove(coords) {
-    // check if the piece at coords is black and has not moved yet
-    if (isBlack(coords) && coords[1] === 6) {
-        return true;
-    } else {
-        return false;
+// Function to calculate knight moves
+function getKnightMoves(pieces, x, y, color) {
+    let moves = [];
+    let potentialMoves = [[x + 2, y + 1], [x + 2, y - 1], [x - 2, y + 1], [x - 2, y - 1], [x + 1, y + 2], [x + 1, y - 2], [x - 1, y + 2], [x - 1, y - 2]];
+    for (let move of potentialMoves) {
+        if (isValidMove(pieces, move[0], move[1])) {
+            if (!isFriendlyPiece(pieces, move[0], move[1], color)) {
+                moves.push(move);
+            }
+        }
     }
+    return moves;
 }
 
-function WhiteFirstMove(coords) {
-    // check if the piece at coords is white and has not moved yet
-    if (isWhite(coords) && coords[1] === 1) {
-        return true;
-    } else {
+// Function to calculate bishop moves
+function getBishopMoves(pieces, x, y, color) {
+    let moves = [];
+    moves = moves.concat(getDiagonalMoves(pieces, x, y, color));
+    return moves;
+}
+
+// Function to calculate queen moves
+function getQueenMoves(pieces, x, y, color) {
+    let moves = [];
+    moves = moves.concat(getHorizontalMoves(pieces, x, y, color));
+    moves = moves.concat(getVerticalMoves(pieces, x, y, color));
+    moves = moves.concat(getDiagonalMoves(pieces, x, y, color));
+    return moves;
+}
+
+// Function to calculate king moves
+function getKingMoves(pieces, x, y, color) {
+    let moves = [];
+    let potentialMoves = [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1], [x + 1, y + 1], [x + 1, y - 1], [x - 1, y + 1], [x - 1, y - 1]];
+    for (let move of potentialMoves) {
+        if (isValidMove(pieces, move[0], move[1])) {
+            if (!isFriendlyPiece(pieces, move[0], move[1], color)) {
+                moves.push(move);
+            }
+        }
+    }
+    return moves;
+}
+
+// Function to calculate horizontal moves
+function getHorizontalMoves(pieces, x, y, color) {
+    let moves = [];
+    let potentialMoves = [];
+    for (let i = 0; i < 8; i++) {
+        if (i !== x) {
+            potentialMoves.push([i, y]);
+        }
+    }
+    for (let move of potentialMoves) {
+        if (isValidMove(pieces, move[0], move[1])) {
+            if (!isFriendlyPiece(pieces, move[0], move[1], color)) {
+                moves.push(move);
+            }
+            if (isEnemyPiece(pieces, move[0], move[1], color)) {
+                moves.push(move);
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+    return moves;
+}
+
+// Function to calculate vertical moves
+function getVerticalMoves(pieces, x, y, color) {
+    let moves = [];
+    let potentialMoves = [];
+    for (let i = 0; i < 8; i++) {
+        if (i !== y) {
+            potentialMoves.push([x, i]);
+        }
+    }
+    for (let move of potentialMoves) {
+        if (isValidMove(pieces, move[0], move[1])) {
+            if (!isFriendlyPiece(pieces, move[0], move[1], color)) {
+                moves.push(move);
+            }
+            if (isEnemyPiece(pieces, move[0], move[1], color)) {
+                moves.push(move);
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+    return moves;
+}
+
+// Function to calculate diagonal moves
+function getDiagonalMoves(pieces, x, y, color) {
+    let moves = [];
+    let potentialMoves = [];
+    for (let i = 0; i < 8; i++) {
+        if (i !== x) {
+            potentialMoves.push([i, y + (i - x)]);
+            potentialMoves.push([i, y - (i - x)]);
+        }
+    }
+    for (let move of potentialMoves) {
+        if (isValidMove(pieces, move[0], move[1])) {
+            if (!isFriendlyPiece(pieces, move[0], move[1], color)) {
+                moves.push(move);
+            }
+            if (isEnemyPiece(pieces, move[0], move[1], color)) {
+                moves.push(move);
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+    return moves;
+}
+
+// Function to check if a move is valid
+function isValidMove(pieces, x, y) {
+    if (x < 0 || x > 7 || y < 0 || y > 7) {
         return false;
     }
+    return true;
+}
+
+// Function to check if a move is a friendly piece
+function isFriendlyPiece(pieces, x, y, color) {
+    if (pieces[y][x] === ' ') {
+        return false;
+    }
+    if (color === 'white') {
+        if (pieces[y][x] === pieces[y][x].toUpperCase()) {
+            return true;
+        }
+    } else {
+        if (pieces[y][x] === pieces[y][x].toLowerCase()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function getPieceColour(coords) {
+    //get coordinate from piece map, and check if it is none, white or black
+    let piece = pieces[coords[1]][coords[0]];
+    if (piece === ' ') {
+        return 'none';
+    }
+    if (piece === piece.toUpperCase()) {
+        return 'white';
+    }
+    return 'black';
 }
